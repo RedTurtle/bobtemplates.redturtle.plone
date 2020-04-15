@@ -1,0 +1,28 @@
+[buildout]
+extends =
+    config/staging.cfg
+    config/supervisor.cfg
+    config/sites.cfg
+
+
+# auto-checkout = {{sitename}}.plonetheme
+auto-checkout = calderaradireno.plonetheme
+always-checkout = force
+
+[plone]
+eggs +=
+#    {{sitename}}.plonetheme
+    calderaradireno.plonetheme
+
+[sources]
+# {{sitename}}.plonetheme = git git@bitbucket.org:redturtle/{{sitename}}.plonetheme.git
+calderaradireno.plonetheme = git git@bitbucket.org:redturtle/calderaradireno.plonetheme.git
+
+[supervisor]
+
+programs =
+    100  zeoserver ${buildout:directory}/parts/zeoserver/bin/runzeo true
+    500  instance1 ${buildout:directory}/bin/instance1 [console]
+
+port = ${sitename:ports:supervisor-address}
+{{ lineavuota }}

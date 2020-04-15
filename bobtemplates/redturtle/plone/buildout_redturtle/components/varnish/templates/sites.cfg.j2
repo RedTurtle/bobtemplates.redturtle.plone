@@ -1,0 +1,11 @@
+{% for site in sites %}
+[{{site.name}}]
+{%- if site.alreadyThere%}{% for option in site.options %}
+{{option}} = {% for opt in site.get(option)%}{% if option == 'plone.directory'%}{{opt}}{%else%}
+    {{opt}}{% endif %}{% endfor %}
+{% endfor %}{% else %}{% for option in site.options %}{% if option == 'ports'%}
+ports = {% for port in site.get(option)%}
+    {{port}}{% endfor %}{% else %}
+{{option}} = {{site.get(option)}}
+{% endif %}{% endfor %}{% endif %}
+{% endfor %}

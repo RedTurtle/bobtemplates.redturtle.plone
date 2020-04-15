@@ -1,0 +1,132 @@
+[buildout]
+
+parts =
+    zopepy
+
+extends =
+    http://dist.plone.org/release/{{{ plone.version }}}/versions.cfg
+    ../versions/base.cfg
+
+find-links +=
+    file://${buildout:directory}/pypi-local
+    http://dist.plone.org/release/{{{ plone.version }}}
+    http://dist.plone.org/thirdparty
+
+
+allow-hosts =
+    github.com
+    pypi.org
+    *.pythonhosted.org
+    *.python.org
+    *.plone.org
+    *.zope.org
+    launchpad.net
+    pypi.org
+    files.pythonhosted.org
+
+show-picked-versions = true
+
+versions = versions
+
+# Configuration part for creating the files to be served
+[config]
+zeo-address = 8090
+instance-address = 8080
+instance1-address = 8081
+debuginstance-address = 8080
+system-user =
+servername = plone
+
+[plone]
+eggs=
+    Plone
+    Pillow
+
+zcml=
+
+##############################################
+#                                            #
+#  BEHIND THIS LINE LIVES AN ANCIENT DRAGON  #
+#         ENTER AT YOUR OWN RISK             #
+#                                            #
+##############################################
+
+[instance-settings]
+user = admin:admin
+debug-mode = off
+verbose-security = off
+blob-storage = ${buildout:directory}/var/blobstorage
+effective-user = ${config:system-user}
+
+eggs =
+    ${plone:eggs}
+zcml =
+    ${plone:zcml}
+environment-vars =
+    DISABLE_HAUFE_MONITORING_ON_PDB True
+    PTS_LANGUAGES it en
+    TZ Europe/Rome
+    zope_i18n_compile_mo_files true
+zodb-cache-size = 100000
+
+{{% if volto_project %}}
+# By default volto run on localhost 3000. This CORS policy it's only for
+# development purpose, so feel free to change it according to your needs
+zcml-additional +=
+  <configure xmlns="http://namespaces.zope.org/zope"
+             xmlns:plone="http://namespaces.plone.org/plone">
+  <plone:CORSPolicy
+    allow_origin="http://localhost:3000,http://127.0.0.1:3000"
+    allow_methods="DELETE,GET,OPTIONS,PATCH,POST,PUT"
+    allow_credentials="true"
+    expose_headers="Content-Length,X-My-Header"
+    allow_headers="Accept,Authorization,Content-Type,X-Custom-Header,Origin"
+    max_age="3600"
+    />
+  </configure>
+{{% endif %}}
+
+[zeo-instance-settings]
+<= instance-settings
+zeo-client = True
+zeo-client-cache-size = 500MB
+zeo-address = ${zeoserver:zeo-address}
+shared-blob = on
+
+[instance]
+recipe = plone.recipe.zope2instance
+<= instance-settings
+http-address = ${config:instance-address}
+
+[zeoserver]
+recipe = plone.recipe.zeoserver
+zeo-address = ${config:zeo-address}
+pack-days = 7
+effective-user = ${config:system-user}
+
+[instance1]
+recipe = plone.recipe.zope2instance
+<= zeo-instance-settings
+http-address = ${config:instance1-address}
+
+[instance2]
+recipe = plone.recipe.zope2instance
+<= zeo-instance-settings
+http-address = ${config:instance2-address}
+
+[debuginstance]
+recipe = plone.recipe.zope2instance
+<= zeo-instance-settings
+http-address = ${config:debuginstance-address}
+debug-mode = on
+verbose-security = on
+
+[zopepy]
+recipe = zc.recipe.egg
+eggs = ${instance-settings:eggs}
+interpreter = zopepy
+scripts = zopepy
+
+[versions]
+setuptools=
+zc.buildout=
